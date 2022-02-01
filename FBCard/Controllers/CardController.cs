@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using FBCard.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,36 +14,86 @@ namespace FBCard.Controllers
     [ApiController]
     public class CardController : ControllerBase
     {
+        private readonly AplicationDbContext _contex;
+
+        public CardController(AplicationDbContext context)
+        {
+            _contex = context;
+        }
         // GET: api/<CardController>
         [HttpGet]
-        public IEnumerable<string> Get()
+        public async Task<ActionResult> Get()
         {
-            return new string[] { "value1", "value2" };
+            try
+            {
+                var listCard = await _contex.CreditCards.ToListAsync();
+                return Ok(listCard);
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
-        // GET api/<CardController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
-        {
-            return "value";
-        }
 
         // POST api/<CardController>
         [HttpPost]
-        public void Post([FromBody] string value)
+        public async Task<IActionResult> Post([FromBody] CreditCard card)
         {
+            try {
+                _contex.Add(card);
+               await _contex.SaveChangesAsync();
+                return Ok(card);
+
+            } 
+            catch(Exception ex){
+
+                return BadRequest(ex.Message);
+            }
         }
 
         // PUT api/<CardController>/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public async Task<IActionResult> Put(int id, [FromBody] CreditCard card)
         {
+            try
+            {   if(id != card.Id)
+                {
+                    return NotFound();
+                }
+                _contex.Update(card);
+                await _contex.SaveChangesAsync();
+                return Ok(new { message ="Tarjeta actualizada con exito!"});
+
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ex.Message);
+            }
         }
 
         // DELETE api/<CardController>/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
+            try
+            {
+                var card = await _contex.CreditCards.FindAsync(id);
+                if (card == null)
+                {
+                    return NotFound();
+                }
+                _contex.CreditCards.Remove(card);
+                await _contex.SaveChangesAsync();
+                return Ok(new { message = "Tarjeta eliminada con exito!" });
+            }
+
+            catch (Exception ex)
+            {
+
+                return BadRequest(ex.Message);
+            }
         }
     }
 }
