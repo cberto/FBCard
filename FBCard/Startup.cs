@@ -35,6 +35,11 @@ namespace FBCard
             });
             services.AddDbContext<AplicationDbContext>(options =>
             options.UseSqlServer(Configuration.GetConnectionString("DevConnection")));
+
+            services.AddCors(options => options.AddPolicy("AllowWebApp",
+                                    builder => builder.AllowAnyOrigin()
+                                                       .AllowAnyHeader()
+                                                       .AllowAnyMethod()));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -46,7 +51,7 @@ namespace FBCard
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "FBCard v1"));
             }
-
+            app.UseCors("AllowWebApp");
             app.UseHttpsRedirection();
 
             app.UseRouting();
